@@ -2,6 +2,7 @@
 
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/security/validator-config.hpp>
+#include <iostream>
 
 namespace ndn {
 namespace examples {
@@ -33,8 +34,9 @@ public:
     interest.setMustBeFresh(true);
 
     m_face.expressInterest(interest,
-                           bind(&Consumer::onData, this,  _1, _2),
-                           bind(&Consumer::onTimeout, this, _1));
+                           std::bind(&Consumer::onData, this,  _1, _2),
+                           [](const Interest&, const lp::Nack&) {},
+                           std::bind(&Consumer::onTimeout, this, _1));
 
     std::cout << "I >> : " << interest << std::endl;
 
@@ -50,8 +52,8 @@ private:
 
     // Validating data
     m_validator.validate(data,
-                         bind(&Consumer::onValidated, this, _1),
-                         bind(&Consumer::onValidationFailed, this, _1, _2));
+                         std::bind(&Consumer::onValidated, this, _1),
+                         std::bind(&Consumer::onValidationFailed, this, _1, _2));
 
   }
 
@@ -62,16 +64,16 @@ private:
   }
 
   void 
-  onValidated(const shared_ptr<const Data>& data)
+  onValidated(const Data& data)
   {
-    std::cout << "Validated data: " << data->getName() << std::endl;
+    std::cout << "Validated data: " << data.getName() << std::endl;
   }
 
   void 
-  onValidationFailed(const shared_ptr<const Data>& data, const std::string& failureInfo)
+  onValidationFailed(const Data& data, const ndn::security::ValidationError& ve)
   {
-    std::cerr << "Not validated data: " << data->getName() 
-              << ". The failure info: " << failureInfo << std::endl;
+    std::cerr << "Not validated data: " << data.getName()
+              << ". The failure info: " << ve << std::endl;
   }
 
 private:

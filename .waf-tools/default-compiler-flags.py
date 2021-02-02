@@ -123,7 +123,7 @@ class GccFlags(GccBasicFlags):
         elif version < (4, 7, 0):
             flags['CXXFLAGS'] += ['-std=c++0x']
         else:
-            flags['CXXFLAGS'] += ['-std=c++11']
+            flags['CXXFLAGS'] += ['-std=c++14']
         return flags
 
     def getDebugFlags(self, conf):
@@ -136,7 +136,7 @@ class GccFlags(GccBasicFlags):
 class ClangFlags(GccBasicFlags):
     def getGeneralFlags(self, conf):
         flags = super(ClangFlags, self).getGeneralFlags(conf)
-        flags['CXXFLAGS'] += ['-std=c++11',
+        flags['CXXFLAGS'] += ['-std=c++14',
                               '-Wno-error=unneeded-internal-declaration', # Bug #1588
                               '-Wno-error=deprecated-register',
                               ]

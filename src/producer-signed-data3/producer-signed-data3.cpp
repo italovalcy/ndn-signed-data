@@ -2,6 +2,7 @@
 
 #include <ndn-cxx/face.hpp>
 #include <ndn-cxx/security/key-chain.hpp>
+#include <iostream>
 
 namespace ndn {
 namespace examples {
@@ -11,6 +12,8 @@ class Producer : noncopyable
 public:
   Producer(const std::string &identity): m_identity(identity)
   {
+    m_signingInfo = ndn::security::SigningInfo(ndn::security::SigningInfo::SIGNER_TYPE_ID,
+                                             m_identity);
   }
 
   void
@@ -54,7 +57,8 @@ private:
     data->setFreshnessPeriod(time::seconds(10));
     data->setContent(reinterpret_cast<const uint8_t*>(content.c_str()), content.size());
 
-    m_keyChain.signByIdentity(*data, m_identity);
+    //m_keyChain.signByIdentity(*data, m_identity);
+    m_keyChain.sign(*data, m_signingInfo);
 
     // Return Data packet to the requester
     std::cout << ">> D: " << *data << std::endl;
@@ -93,12 +97,11 @@ private:
 
     try {
       // Create Data packet
-      shared_ptr<IdentityCertificate> cert = m_keyChain.getCertificate(
-             m_keyChain.getDefaultCertificateNameForIdentity(identityName));
+      ndn::security::Certificate cert = m_keyChain.getPib().getIdentity(identityName).getDefaultKey().getDefaultCertificate();
 
       // Return Data packet to the requester
       //std::cout << ">> CERTIFICATE: " << *cert << std::endl;
-      m_face.put(*cert);
+      m_face.put(cert);
     }
     catch (const std::exception& ) {
       std::cout << "The certificate: " << interest.getName() 
@@ -120,6 +123,7 @@ private:
   Face m_face;
   KeyChain m_keyChain;
   Name m_identity;
+  ndn::security::SigningInfo m_signingInfo;
 };
 
 } // namespace examples
